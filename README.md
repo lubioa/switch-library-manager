@@ -24,6 +24,7 @@ Easily manage your switch game backups
 - Delete old update files (in case you have multiple update files for the same game, only the latest will remain)
 - Delete empty folders
 - Zero dependencies, all crypto operations implemented in Go
+- gitignore styled ignore pattern
 
 ## Keys (optional)
 
@@ -48,6 +49,15 @@ You can customize the folder/file re-naming, as well as turn on/off features.
  "prod_keys": "",
  "folder": "",
  "scan_folders": [],
+ "target_file_extensions": [
+  "nsp",
+  "xci",
+  "nsz",
+  "xcz"
+ ],
+ "ignore_patterns": [
+  "Mods"
+ ],
  "gui": false,
  "debug": false, # Deprecated, no longer works
  "check_for_missing_updates": true,
