@@ -3,7 +3,6 @@ package settings
 import (
 	"errors"
 	"github.com/magiconair/properties"
-	"path/filepath"
 )
 
 var (
@@ -23,26 +22,11 @@ func SwitchKeys() (*switchKeys, error) {
 }
 
 func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
-
-	// init from a file
-	path := filepath.Join(baseFolder, "prod.keys")
-	p, err := properties.LoadFile(path, properties.UTF8)
-	if err != nil {
-		path = "${HOME}/.switch/prod.keys"
-		p, err = properties.LoadFile(path, properties.UTF8)
-	}
 	settings := ReadSettings(baseFolder)
-	if err != nil {
-		if settings.Prodkeys != "" {
-			path = settings.Prodkeys
-			p, err = properties.LoadFile(filepath.Join(path, "prod.keys"), properties.UTF8)
-		}
-	}
+	p, err := properties.LoadFile(settings.Prodkeys, properties.UTF8)
 	if err != nil {
 		return nil, errors.New("Error trying to read prod.keys [reason:" + err.Error() + "]")
 	}
-	settings.Prodkeys = path
-	SaveSettings(settings, baseFolder)
 	keysInstance = &switchKeys{keys: map[string]string{}}
 	for _, key := range p.Keys() {
 		value, _ := p.Get(key)
