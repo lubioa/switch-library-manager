@@ -54,6 +54,7 @@ type AppSettings struct {
 	Prodkeys               string          `json:"prod_keys"`
 	Folder                 string          `json:"folder"`
 	ScanFolders            []string        `json:"scan_folders"`
+	TargetFileExtensions   []string        `json:"target_file_extensions"`
 	GUI                    bool            `json:"gui"`
 	Debug                  bool            `json:"debug"`
 	CheckForMissingUpdates bool            `json:"check_for_missing_updates"`
@@ -104,6 +105,7 @@ func saveDefaultSettings(baseFolder string) *AppSettings {
 		Prodkeys:               "",
 		Folder:                 "",
 		ScanFolders:            []string{},
+		TargetFileExtensions:   []string{"nsp", "xci", "nsz", "xcz"},
 		GUI:                    true,
 		Debug:                  false,
 		CheckForMissingUpdates: true,

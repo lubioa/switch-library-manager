@@ -83,7 +83,7 @@ func CreateGUI(baseFolder string, sugarLogger *zap.SugaredLogger) *GUI {
 }
 func (g *GUI) Start() {
 
-	localDbManager, err := db.NewLocalSwitchDBManager(g.baseFolder)
+	localDbManager, err := db.NewLocalSwitchDBManager(g.baseFolder, settings.ReadSettings(g.baseFolder))
 	if err != nil {
 		g.sugarLogger.Error("Failed to create local files db\n", err)
 		return

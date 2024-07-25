@@ -12,6 +12,7 @@ import (
 	"switch-library-manager/fileio"
 	"switch-library-manager/settings"
 	"switch-library-manager/switchfs"
+
 	"go.uber.org/zap"
 )
 
@@ -32,15 +33,16 @@ const (
 )
 
 type LocalSwitchDBManager struct {
-	db *PersistentDB
+	db       *PersistentDB
+	settings *settings.AppSettings
 }
 
-func NewLocalSwitchDBManager(baseFolder string) (*LocalSwitchDBManager, error) {
+func NewLocalSwitchDBManager(baseFolder string, settings *settings.AppSettings) (*LocalSwitchDBManager, error) {
 	db, err := NewPersistentDB(baseFolder)
 	if err != nil {
 		return nil, err
 	}
-	return &LocalSwitchDBManager{db: db}, nil
+	return &LocalSwitchDBManager{db: db, settings: settings}, nil
 }
 
 func (ldb *LocalSwitchDBManager) Close() {
@@ -183,13 +185,24 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(files []ExtendedFileInfo,
 
 		}
 
-		//only handle NSZ and NSP files
+		hasTargetFileExtension := false
+		for _, targetFileExtension := range ldb.settings.TargetFileExtensions {
+			if strings.HasSuffix(fileName, "."+targetFileExtension) {
+				hasTargetFileExtension = true
+			}
+		}
 
+		if !hasTargetFileExtension {
+			continue // without any other message
+		}
+
+		//only handle NSZ and NSP files
 		if !isSplit &&
-			!strings.HasSuffix(fileName, "xci") &&
-			!strings.HasSuffix(fileName, "nsp") &&
-			!strings.HasSuffix(fileName, "nsz") &&
-			!strings.HasSuffix(fileName, "xcz") {
+			!strings.HasSuffix(fileName, ".xci") &&
+			!strings.HasSuffix(fileName, ".nsp") &&
+			!strings.HasSuffix(fileName, ".nsz") &&
+			!strings.HasSuffix(fileName, ".xcz") {
+
 			skipped[file] = SkippedFile{ReasonCode: REASON_UNSUPPORTED_TYPE, ReasonText: "file type is not supported"}
 			continue
 		}

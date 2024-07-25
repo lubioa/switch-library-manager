@@ -106,7 +106,7 @@ func (c *Console) Start() {
 		recursiveMode = c.consoleFlags.Recursive.Bool()
 	}
 
-	localDbManager, err := db.NewLocalSwitchDBManager(c.baseFolder)
+	localDbManager, err := db.NewLocalSwitchDBManager(c.baseFolder, settingsObj)
 	if err != nil {
 		fmt.Printf("failed to create local files db :%v\n", err)
 		return
