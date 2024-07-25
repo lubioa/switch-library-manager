@@ -1,4 +1,4 @@
-module github.com/trembon/switch-library-manager
+module switch-library-manager
 
 go 1.20
 

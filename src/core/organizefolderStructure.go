@@ -1,4 +1,4 @@
-package process
+package core
 
 import (
 	"io/ioutil"
@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/trembon/switch-library-manager/db"
-	"github.com/trembon/switch-library-manager/settings"
+	"switch-library-manager/db"
+	"switch-library-manager/settings"
 	"go.uber.org/zap"
 	"robpike.io/nihongo"
 )

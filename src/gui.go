@@ -14,9 +14,9 @@ import (
 	"github.com/asticode/go-astikit"
 	"github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
-	"github.com/trembon/switch-library-manager/db"
-	"github.com/trembon/switch-library-manager/process"
-	"github.com/trembon/switch-library-manager/settings"
+	"switch-library-manager/db"
+	"switch-library-manager/core"
+	"switch-library-manager/settings"
 	"go.uber.org/zap"
 )
 
@@ -346,8 +346,8 @@ func (g *GUI) getMissingDLC() string {
 	for _, id := range settingsObj.IgnoreDLCTitleIds {
 		ignoreIds[strings.ToLower(id)] = struct{}{}
 	}
-	missingDLC := process.ScanForMissingDLC(g.state.localDB.TitlesMap, g.state.switchDB.TitlesMap, ignoreIds)
-	values := make([]process.IncompleteTitle, len(missingDLC))
+	missingDLC := core.ScanForMissingDLC(g.state.localDB.TitlesMap, g.state.switchDB.TitlesMap, ignoreIds)
+	values := make([]core.IncompleteTitle, len(missingDLC))
 	i := 0
 	for _, missingUpdate := range missingDLC {
 		values[i] = missingUpdate
@@ -360,8 +360,8 @@ func (g *GUI) getMissingDLC() string {
 
 func (g *GUI) getMissingUpdates() string {
 	settingsObj := settings.ReadSettings(g.baseFolder)
-	missingUpdates := process.ScanForMissingUpdates(g.state.localDB.TitlesMap, g.state.switchDB.TitlesMap, settingsObj.IgnoreDLCUpdates)
-	values := make([]process.IncompleteTitle, len(missingUpdates))
+	missingUpdates := core.ScanForMissingUpdates(g.state.localDB.TitlesMap, g.state.switchDB.TitlesMap, settingsObj.IgnoreDLCUpdates)
+	values := make([]core.IncompleteTitle, len(missingUpdates))
 	i := 0
 	for _, missingUpdate := range missingUpdates {
 		values[i] = missingUpdate
@@ -417,14 +417,14 @@ func (g *GUI) buildLocalDB(localDbManager *db.LocalSwitchDBManager, ignoreCache 
 func (g *GUI) organizeLibrary() {
 	folderToScan := settings.ReadSettings(g.baseFolder).Folder
 	options := settings.ReadSettings(g.baseFolder).OrganizeOptions
-	if !process.IsOptionsValid(options) {
+	if !core.IsOptionsValid(options) {
 		zap.S().Error("the organize options in settings.json are not valid, please check that the template contains file/folder name")
 		g.state.window.SendMessage(Message{Name: "error", Payload: "the organize options in settings.json are not valid, please check that the template contains file/folder name"}, func(m *astilectron.EventMessage) {})
 		return
 	}
-	process.OrganizeByFolders(folderToScan, g.state.localDB, g.state.switchDB, g)
+	core.OrganizeByFolders(folderToScan, g.state.localDB, g.state.switchDB, g)
 	if settings.ReadSettings(g.baseFolder).OrganizeOptions.DeleteOldUpdateFiles {
-		process.DeleteOldUpdates(g.baseFolder, g.state.localDB, g)
+		core.DeleteOldUpdates(g.baseFolder, g.state.localDB, g)
 	}
 }
 

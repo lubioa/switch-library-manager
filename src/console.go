@@ -11,10 +11,10 @@ import (
 
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/schollz/progressbar/v3"
-	"github.com/trembon/switch-library-manager/console"
-	"github.com/trembon/switch-library-manager/db"
-	"github.com/trembon/switch-library-manager/process"
-	"github.com/trembon/switch-library-manager/settings"
+	"switch-library-manager/console"
+	"switch-library-manager/db"
+	"switch-library-manager/core"
+	"switch-library-manager/settings"
 	"go.uber.org/zap"
 )
 
@@ -135,14 +135,14 @@ func (c *Console) Start() {
 	if settingsObj.OrganizeOptions.DeleteOldUpdateFiles {
 		progressBar = progressbar.New(2000)
 		fmt.Printf("\nDeleting old updates\n")
-		process.DeleteOldUpdates(c.baseFolder, localDB, c)
+		core.DeleteOldUpdates(c.baseFolder, localDB, c)
 		progressBar.Finish()
 	}
 
 	if settingsObj.OrganizeOptions.RenameFiles || settingsObj.OrganizeOptions.CreateFolderPerGame {
 		progressBar = progressbar.New(2000)
 		fmt.Printf("\nStarting library organization\n")
-		process.OrganizeByFolders(folderToScan, localDB, titlesDB, c)
+		core.OrganizeByFolders(folderToScan, localDB, titlesDB, c)
 		progressBar.Finish()
 	}
 
@@ -198,7 +198,7 @@ func (c *Console) processIssues(localDB *db.LocalSwitchFilesDB, csvOutput string
 }
 
 func (c *Console) processMissingUpdates(localDB *db.LocalSwitchFilesDB, titlesDB *db.SwitchTitlesDB, settingsObj *settings.AppSettings, csvOutput string) {
-	incompleteTitles := process.ScanForMissingUpdates(localDB.TitlesMap, titlesDB.TitlesMap, settingsObj.IgnoreDLCUpdates)
+	incompleteTitles := core.ScanForMissingUpdates(localDB.TitlesMap, titlesDB.TitlesMap, settingsObj.IgnoreDLCUpdates)
 	if len(incompleteTitles) != 0 {
 		fmt.Print("\nFound available updates:\n\n")
 	} else {
@@ -231,7 +231,7 @@ func (c *Console) processMissingDLC(localDB *db.LocalSwitchFilesDB, titlesDB *db
 	for _, id := range settingsObj.IgnoreDLCTitleIds {
 		ignoreIds[strings.ToLower(id)] = struct{}{}
 	}
-	incompleteTitles := process.ScanForMissingDLC(localDB.TitlesMap, titlesDB.TitlesMap, ignoreIds)
+	incompleteTitles := core.ScanForMissingDLC(localDB.TitlesMap, titlesDB.TitlesMap, ignoreIds)
 	if len(incompleteTitles) != 0 {
 		fmt.Print("\nFound missing DLCS:\n\n")
 	} else {

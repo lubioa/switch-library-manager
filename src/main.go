@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/trembon/switch-library-manager/console"
-	"github.com/trembon/switch-library-manager/settings"
+	"switch-library-manager/console"
+	"switch-library-manager/settings"
 	"go.uber.org/zap"
 )
 

@@ -1,12 +1,12 @@
-package process
+package core
 
 import (
 	"fmt"
 	"sort"
 	"strconv"
 
-	"github.com/trembon/switch-library-manager/db"
-	"github.com/trembon/switch-library-manager/switchfs"
+	"switch-library-manager/db"
+	"switch-library-manager/switchfs"
 	"go.uber.org/zap"
 )
 
