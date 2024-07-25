@@ -29,6 +29,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/sam-kamerer/go-plister v1.2.0 // indirect
 	go.mongodb.org/mongo-driver v1.15.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect

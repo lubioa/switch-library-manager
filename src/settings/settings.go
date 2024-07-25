@@ -55,6 +55,7 @@ type AppSettings struct {
 	Folder                 string          `json:"folder"`
 	ScanFolders            []string        `json:"scan_folders"`
 	TargetFileExtensions   []string        `json:"target_file_extensions"`
+	IgnorePatterns         []string        `json:"ignore_patterns"`
 	GUI                    bool            `json:"gui"`
 	Debug                  bool            `json:"debug"`
 	CheckForMissingUpdates bool            `json:"check_for_missing_updates"`
@@ -106,6 +107,7 @@ func saveDefaultSettings(baseFolder string) *AppSettings {
 		Folder:                 "",
 		ScanFolders:            []string{},
 		TargetFileExtensions:   []string{"nsp", "xci", "nsz", "xcz"},
+		IgnorePatterns:         []string{"Mods"},
 		GUI:                    true,
 		Debug:                  false,
 		CheckForMissingUpdates: true,

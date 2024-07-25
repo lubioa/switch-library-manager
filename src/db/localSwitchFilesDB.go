@@ -14,6 +14,8 @@ import (
 	"switch-library-manager/switchfs"
 
 	"go.uber.org/zap"
+
+	gitignore "github.com/sabhiram/go-gitignore"
 )
 
 var (
@@ -97,9 +99,9 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(folders []string,
 	}
 
 	if len(titles) == 0 {
-
+		ignore := gitignore.CompileIgnoreLines(ldb.settings.IgnorePatterns...)
 		for i, folder := range folders {
-			err := scanFolder(folder, recursive, &files, progress)
+			err := ldb.scanFolder(folder, ignore, recursive, &files, progress)
 			if progress != nil {
 				progress.UpdateProgress(i+1, len(folders)+1, "scanning files in "+folder)
 			}
@@ -122,8 +124,16 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(folders []string,
 	return &LocalSwitchFilesDB{TitlesMap: titles, Skipped: skipped, NumFiles: len(files)}, nil
 }
 
-func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progress ProgressUpdater) error {
+func (ldb *LocalSwitchDBManager) scanFolder(folder string, ignore *gitignore.GitIgnore, recursive bool, files *[]ExtendedFileInfo, progress ProgressUpdater) error {
+	folder = strings.TrimSuffix(folder, string(os.PathSeparator)) + string(os.PathSeparator)
 	filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
+		if ignore.MatchesPath(path[len(folder):]) {
+			if info.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
 		if path == folder {
 			return nil
 		}
@@ -187,8 +197,9 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(files []ExtendedFileInfo,
 
 		hasTargetFileExtension := false
 		for _, targetFileExtension := range ldb.settings.TargetFileExtensions {
-			if strings.HasSuffix(fileName, "."+targetFileExtension) {
+			if targetFileExtension == "*" || strings.HasSuffix(fileName, "."+targetFileExtension) {
 				hasTargetFileExtension = true
+				break
 			}
 		}
 
