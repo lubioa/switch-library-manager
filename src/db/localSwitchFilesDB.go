@@ -146,6 +146,18 @@ func (ldb *LocalSwitchDBManager) scanFolder(folder string, ignore *gitignore.Git
 			return nil
 		}
 
+		hasTargetFileExtension := false
+		for _, targetFileExtension := range ldb.settings.TargetFileExtensions {
+			if targetFileExtension == "*" || strings.HasSuffix(path, "."+targetFileExtension) {
+				hasTargetFileExtension = true
+				break
+			}
+		}
+
+		if !hasTargetFileExtension {
+			return nil
+		}
+
 		base := path[0 : len(path)-len(info.Name())]
 		if strings.TrimSuffix(base, string(os.PathSeparator)) != strings.TrimSuffix(folder, string(os.PathSeparator)) &&
 			!recursive {
@@ -193,18 +205,6 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(files []ExtendedFileInfo,
 				continue
 			}
 
-		}
-
-		hasTargetFileExtension := false
-		for _, targetFileExtension := range ldb.settings.TargetFileExtensions {
-			if targetFileExtension == "*" || strings.HasSuffix(fileName, "."+targetFileExtension) {
-				hasTargetFileExtension = true
-				break
-			}
-		}
-
-		if !hasTargetFileExtension {
-			continue // without any other message
 		}
 
 		//only handle NSZ and NSP files
