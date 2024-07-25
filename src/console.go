@@ -9,12 +9,13 @@ import (
 	"strconv"
 	"strings"
 
+	"switch-library-manager/console"
+	"switch-library-manager/core"
+	"switch-library-manager/db"
+	"switch-library-manager/settings"
+
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/schollz/progressbar/v3"
-	"switch-library-manager/console"
-	"switch-library-manager/db"
-	"switch-library-manager/core"
-	"switch-library-manager/settings"
 	"go.uber.org/zap"
 )
 
@@ -95,7 +96,7 @@ func (c *Console) Start() {
 	}
 	fmt.Printf("\n\nScanning folder [%v]", folderToScan)
 	progressBar = progressbar.New(2000)
-	keys, _ := settings.InitSwitchKeys(c.baseFolder)
+	keys, _ := settings.GetSwitchKeys(c.baseFolder)
 	if keys == nil || keys.GetKey("header_key") == "" {
 		fmt.Printf("\n!!NOTE!!: keys file was not found, deep scan is disabled, library will be based on file tags.\n %v", err)
 	}

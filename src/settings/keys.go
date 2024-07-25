@@ -2,6 +2,7 @@ package settings
 
 import (
 	"errors"
+
 	"github.com/magiconair/properties"
 )
 
@@ -21,7 +22,7 @@ func SwitchKeys() (*switchKeys, error) {
 	return keysInstance, nil
 }
 
-func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
+func GetSwitchKeys(baseFolder string) (*switchKeys, error) {
 	settings := ReadSettings(baseFolder)
 	p, err := properties.LoadFile(settings.Prodkeys, properties.UTF8)
 	if err != nil {

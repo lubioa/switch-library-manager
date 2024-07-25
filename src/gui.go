@@ -11,12 +11,13 @@ import (
 	"sync"
 	"time"
 
+	"switch-library-manager/core"
+	"switch-library-manager/db"
+	"switch-library-manager/settings"
+
 	"github.com/asticode/go-astikit"
 	"github.com/asticode/go-astilectron"
 	bootstrap "github.com/asticode/go-astilectron-bootstrap"
-	"switch-library-manager/db"
-	"switch-library-manager/core"
-	"switch-library-manager/settings"
 	"go.uber.org/zap"
 )
 
@@ -88,7 +89,7 @@ func (g *GUI) Start() {
 		return
 	}
 
-	settings.InitSwitchKeys(g.baseFolder)
+	settings.GetSwitchKeys(g.baseFolder)
 
 	g.localDbManager = localDbManager
 	defer localDbManager.Close()
@@ -415,6 +416,7 @@ func (g *GUI) buildLocalDB(localDbManager *db.LocalSwitchDBManager, ignoreCache 
 }
 
 func (g *GUI) organizeLibrary() {
+	g.buildLocalDB(g.localDbManager, true)
 	folderToScan := settings.ReadSettings(g.baseFolder).Folder
 	options := settings.ReadSettings(g.baseFolder).OrganizeOptions
 	if !core.IsOptionsValid(options) {
