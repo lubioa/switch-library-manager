@@ -9,7 +9,7 @@ import (
 type Language int
 
 const (
-	AmericanEnglish = iota
+	AmericanEnglish = Language(iota)
 	BritishEnglish
 	Japanese
 	French

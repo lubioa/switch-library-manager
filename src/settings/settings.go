@@ -66,6 +66,7 @@ type AppSettings struct {
 	GuiPagingSize          int             `json:"gui_page_size"`
 	IgnoreDLCUpdates       bool            `json:"ignore_dlc_updates"`
 	IgnoreDLCTitleIds      []string        `json:"ignore_dlc_title_ids"`
+	LanguagePriority       []string        `json:"language_priority"`
 }
 
 func ReadSettingsAsJSON(baseFolder string) string {
@@ -127,6 +128,23 @@ func saveDefaultSettings(baseFolder string) *AppSettings {
 		GuiPagingSize:     100,
 		IgnoreDLCUpdates:  false,
 		IgnoreDLCTitleIds: []string{},
+		LanguagePriority: []string{
+			"AmericanEnglish",
+			"BritishEnglish",
+			"Japanese",
+			"Korean",
+			"French",
+			"German",
+			"LatinAmericanSpanish",
+			"Spanish",
+			"Italian",
+			"Dutch",
+			"CanadianFrench",
+			"Portuguese",
+			"Russian",
+			"Taiwanese",
+			"Chinese",
+		},
 	}
 	return SaveSettings(settingsInstance, baseFolder)
 }

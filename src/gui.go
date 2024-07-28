@@ -229,7 +229,7 @@ func (g *GUI) handleMessage(m *astilectron.EventMessage) interface{} {
 				name := ""
 				if v.File.Metadata.Ncap != nil {
 					version = v.File.Metadata.Ncap.DisplayVersion
-					name = v.File.Metadata.Ncap.TitleName["AmericanEnglish"].Title
+					name = db.GetTitle(&v.File.Metadata.Ncap.TitleName, settings.ReadSettings(g.baseFolder).LanguagePriority).Title
 				}
 
 				if v.Updates != nil && len(v.Updates) != 0 {
@@ -240,7 +240,7 @@ func (g *GUI) handleMessage(m *astilectron.EventMessage) interface{} {
 					}
 				}
 				if title, ok := g.state.switchDB.TitlesMap[k]; ok {
-					if title.Attributes.Name != "" {
+					if name == "" && title.Attributes.Name != "" {
 						name = title.Attributes.Name
 					}
 					libraryData = append(libraryData,

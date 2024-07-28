@@ -11,6 +11,7 @@ import (
 
 	"switch-library-manager/db"
 	"switch-library-manager/settings"
+
 	"go.uber.org/zap"
 	"robpike.io/nihongo"
 )
@@ -63,7 +64,8 @@ func OrganizeByFolders(baseFolder string,
 
 	//validate template rules
 
-	options := settings.ReadSettings(baseFolder).OrganizeOptions
+	s := settings.ReadSettings(baseFolder)
+	options := s.OrganizeOptions
 	if !IsOptionsValid(options) {
 		zap.S().Error("the organize options in settings.json are not valid, please check that the template contains file/folder name")
 		return
@@ -80,7 +82,7 @@ func OrganizeByFolders(baseFolder string,
 			updateProgress.UpdateProgress(i, tasksSize, v.File.ExtendedInfo.FileName)
 		}
 
-		titleName := getTitleName(titlesDB.TitlesMap[k], v)
+		titleName := getTitleName(titlesDB.TitlesMap[k], v, s.LanguagePriority)
 
 		templateData := map[string]string{}
 
@@ -274,7 +276,7 @@ func getDlcName(switchTitle *db.SwitchTitle, file db.SwitchFileInfo) string {
 	return ""
 }
 
-func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
+func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles, languagePriority []string) string {
 	if switchTitle != nil && switchTitle.Attributes.Name != "" {
 		res := cjk.FindAllString(switchTitle.Attributes.Name, -1)
 		if len(res) == 0 {
@@ -283,7 +285,7 @@ func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
 	}
 
 	if v.File.Metadata.Ncap != nil {
-		name := v.File.Metadata.Ncap.TitleName["AmericanEnglish"].Title
+		name := db.GetTitle(&v.File.Metadata.Ncap.TitleName, languagePriority).Title
 		if name != "" {
 			return name
 		}

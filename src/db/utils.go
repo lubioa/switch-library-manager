@@ -4,13 +4,15 @@ import (
 	bytes2 "bytes"
 	"encoding/json"
 	"errors"
-	"go.uber.org/zap"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
+	"switch-library-manager/switchfs"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type ProgressUpdater interface {
@@ -119,4 +121,22 @@ func saveFile(bytes []byte, fileName string) (*os.File, error) {
 		return nil, err
 	}
 	return file, nil
+}
+
+func GetTitle(titles *map[string]switchfs.NacpTitle, languagePriority []string) switchfs.NacpTitle {
+	for _, language := range languagePriority {
+		if value, ok := (*titles)[language]; ok {
+			return value
+		}
+	}
+
+	if value, ok := (*titles)[switchfs.AmericanEnglish.String()]; ok {
+		return value
+	}
+
+	for _, value := range *titles {
+		return value
+	}
+
+	return switchfs.NacpTitle{}
 }
