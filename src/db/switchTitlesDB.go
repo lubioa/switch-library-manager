@@ -69,6 +69,7 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 			switchTitle = t
 		}
 		result.TitlesMap[idPrefix] = switchTitle
+		result.TitlesMap[idPrefix+"-XCI"] = switchTitle
 
 		//process Updates
 		if strings.HasSuffix(id, "800") {
@@ -85,7 +86,6 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 
 		//not an update, and not main TitleAttributes, so treat it as a DLC
 		switchTitle.Dlc[id] = attr
-
 	}
 
 	return &result, nil

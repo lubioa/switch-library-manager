@@ -237,6 +237,10 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(files []ExtendedFileInfo,
 				idPrefix = id[0:len(id)-4] + h
 			}
 
+			if strings.HasSuffix(fileName, ".xci") {
+				idPrefix += "-XCI"
+			}
+
 			multiContent := len(contentMap) > 1
 			switchTitle := &SwitchGameFiles{
 				MultiContent: multiContent,
@@ -246,6 +250,7 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(files []ExtendedFileInfo,
 				IsSplit:      isSplit,
 				LatestUpdate: 0,
 			}
+
 			if t, ok := titles[idPrefix]; ok {
 				switchTitle = t
 			}
@@ -302,7 +307,6 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(files []ExtendedFileInfo,
 			switchTitle.Dlc[metadata.TitleId] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
 		}
 	}
-
 }
 
 func (ldb *LocalSwitchDBManager) getGameMetadata(file ExtendedFileInfo,

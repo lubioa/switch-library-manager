@@ -445,7 +445,13 @@ func (g *GUI) UpdateProgress(curr int, total int, message string) {
 func (g *GUI) getMissingGames() []SwitchTitle {
 	var result []SwitchTitle
 	for k, v := range g.state.switchDB.TitlesMap {
+		if strings.HasSuffix(k, "-XCI") {
+			continue
+		}
 		if _, ok := g.state.localDB.TitlesMap[k]; ok {
+			continue
+		}
+		if _, ok := g.state.localDB.TitlesMap[k+"-XCI"]; ok {
 			continue
 		}
 		if v.Attributes.Name == "" || v.Attributes.Id == "" {
