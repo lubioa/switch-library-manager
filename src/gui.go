@@ -269,12 +269,14 @@ func (g *GUI) handleMessage(m *astilectron.EventMessage) interface{} {
 						})
 				}
 
-			} else {
-				for _, update := range v.Updates {
-					issues = append(issues, Pair{Key: filepath.Join(update.ExtendedInfo.BaseFolder, update.ExtendedInfo.FileName), Value: "base file is missing"})
-				}
-				for _, dlc := range v.Dlc {
-					issues = append(issues, Pair{Key: filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName), Value: "base file is missing"})
+			} else if !strings.HasSuffix(k, "-XCI") {
+				if _, exists := localDB.TitlesMap[k+"-XCI"]; !exists {
+					for _, update := range v.Updates {
+						issues = append(issues, Pair{Key: filepath.Join(update.ExtendedInfo.BaseFolder, update.ExtendedInfo.FileName), Value: "base file is missing"})
+					}
+					for _, dlc := range v.Dlc {
+						issues = append(issues, Pair{Key: filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName), Value: "base file is missing"})
+					}
 				}
 			}
 		}

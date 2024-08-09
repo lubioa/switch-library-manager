@@ -74,32 +74,56 @@ func OrganizeByFolders(baseFolder string,
 	tasksSize := len(localDB.TitlesMap) + 2
 	for k, v := range localDB.TitlesMap {
 		i++
-		if !v.BaseExist {
-			continue
-		}
 
 		if updateProgress != nil {
-			updateProgress.UpdateProgress(i, tasksSize, v.File.ExtendedInfo.FileName)
+			updateProgress.UpdateProgress(i, tasksSize, k)
 		}
-
-		titleName := getTitleName(titlesDB.TitlesMap[k], v, s.LanguagePriority)
 
 		templateData := map[string]string{}
 
-		templateData[settings.TEMPLATE_TITLE_ID] = v.File.Metadata.TitleId
+		var isPhantom = false
+		var oldFile = db.SwitchFileInfo{}
+		if !strings.HasSuffix(k, "-XCI") && !v.BaseExist {
+			if xciBase, exists := localDB.TitlesMap[k+"-XCI"]; exists {
+				v.BaseExist = true
+				v.File = xciBase.File
+				oldFile = v.File
+				isPhantom = true
+			}
+		}
+
 		//templateData[settings.TEMPLATE_TYPE] = "BASE"
-		templateData[settings.TEMPLATE_TITLE_NAME] = titleName
+
+		templateData[settings.TEMPLATE_TITLE_NAME] = getTitleName(titlesDB.TitlesMap[k], v)
 		templateData[settings.TEMPLATE_VERSION_TXT] = ""
 		if _, ok := titlesDB.TitlesMap[k]; ok {
 			templateData[settings.TEMPLATE_REGION] = titlesDB.TitlesMap[k].Attributes.Region
 		}
 		templateData[settings.TEMPLATE_VERSION] = "0"
 
-		if v.File.Metadata.Ncap != nil {
-			templateData[settings.TEMPLATE_VERSION_TXT] = v.File.Metadata.Ncap.DisplayVersion
-		}
+		var destinationPath = baseFolder
 
-		var destinationPath = v.File.ExtendedInfo.BaseFolder
+		if v.BaseExist {
+			destinationPath = v.File.ExtendedInfo.BaseFolder
+			if v.File.Metadata.Ncap != nil {
+				templateData[settings.TEMPLATE_VERSION_TXT] = v.File.Metadata.Ncap.DisplayVersion
+			}
+		} else {
+			var max_update = -1
+			for update, updateInfo := range v.Updates {
+				if update > max_update {
+					destinationPath = updateInfo.ExtendedInfo.BaseFolder
+					max_update = update
+				}
+			}
+
+			if max_update == -1 {
+				for _, dlc := range v.Dlc {
+					destinationPath = dlc.ExtendedInfo.BaseFolder
+					break
+				}
+			}
+		}
 
 		//create folder if needed
 		if options.CreateFolderPerGame {
@@ -114,7 +138,7 @@ func OrganizeByFolders(baseFolder string,
 			}
 		}
 
-		if v.IsSplit {
+		if v.BaseExist && v.IsSplit {
 			//in case of a split file, we only rename the folder and then move all the split
 			//files with the new folder
 			files, err := ioutil.ReadDir(v.File.ExtendedInfo.BaseFolder)
@@ -138,12 +162,15 @@ func OrganizeByFolders(baseFolder string,
 		}
 
 		//process base title
-		from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
-		to := filepath.Join(destinationPath, getFileName(options, v.File.ExtendedInfo.FileName, templateData, 0))
-		err := moveFile(from, to)
-		if err != nil {
-			zap.S().Errorf("Failed to move file [%v]\n", err)
-			continue
+		if !isPhantom && v.BaseExist {
+			templateData[settings.TEMPLATE_TITLE_ID] = v.File.Metadata.TitleId
+			from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
+			to := filepath.Join(destinationPath, getFileName(options, v.File.ExtendedInfo.FileName, templateData, 0))
+			err := moveFile(from, to)
+			if err != nil {
+				zap.S().Errorf("Failed to move file [%v]\n", err)
+				continue
+			}
 		}
 
 		//process updates
@@ -159,7 +186,8 @@ func OrganizeByFolders(baseFolder string,
 				templateData[settings.TEMPLATE_VERSION_TXT] = ""
 			}
 
-			from = filepath.Join(updateInfo.ExtendedInfo.BaseFolder, updateInfo.ExtendedInfo.FileName)
+			from := filepath.Join(updateInfo.ExtendedInfo.BaseFolder, updateInfo.ExtendedInfo.FileName)
+			var to string
 			if options.CreateFolderPerGame {
 				to = filepath.Join(destinationPath, getFileName(options, updateInfo.ExtendedInfo.FileName, templateData, 0))
 			} else {
@@ -179,9 +207,9 @@ func OrganizeByFolders(baseFolder string,
 				templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(dlc.Metadata.Version)
 			}
 			templateData[settings.TEMPLATE_TYPE] = "DLC"
-			templateData[settings.TEMPLATE_TITLE_ID] = id
 			templateData[settings.TEMPLATE_DLC_NAME] = getDlcName(titlesDB.TitlesMap[k], dlc)
-			from = filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName)
+			from := filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName)
+			var to string
 
 			dlcNameTry := 0
 			for {
@@ -207,11 +235,15 @@ func OrganizeByFolders(baseFolder string,
 			}
 			existingDlcs[to] = id
 
-			err = moveFile(from, to)
-			if err != nil {
+			if err := moveFile(from, to); err != nil {
 				zap.S().Errorf("Failed to move file [%v]\n", err)
 				continue
 			}
+		}
+
+		if isPhantom {
+			v.BaseExist = false
+			v.File = oldFile
 		}
 	}
 
@@ -276,7 +308,7 @@ func getDlcName(switchTitle *db.SwitchTitle, file db.SwitchFileInfo) string {
 	return ""
 }
 
-func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles, languagePriority []string) string {
+func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
 	if switchTitle != nil && switchTitle.Attributes.Name != "" {
 		res := cjk.FindAllString(switchTitle.Attributes.Name, -1)
 		if len(res) == 0 {
@@ -284,15 +316,28 @@ func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles, languagePr
 		}
 	}
 
-	if v.File.Metadata.Ncap != nil {
-		name := db.GetTitle(&v.File.Metadata.Ncap.TitleName, languagePriority).Title
-		if name != "" {
-			return name
+	if v.BaseExist {
+		if v.File.Metadata.Ncap != nil {
+			name := v.File.Metadata.Ncap.TitleName["AmericanEnglish"].Title
+			if name != "" {
+				return name
+			}
 		}
+
+		//for non eshop games (cartridge only), grab the name from the file
+		return db.ParseTitleNameFromFileName(v.File.ExtendedInfo.FileName)
 	}
 
-	//for non eshop games (cartridge only), grab the name from the file
-	return db.ParseTitleNameFromFileName(v.File.ExtendedInfo.FileName)
+	for _, dlc := range v.Dlc {
+		return db.ParseTitleNameFromFileName(dlc.ExtendedInfo.FileName)
+	}
+
+	// update file without base file, and no information in titlesdb? ..
+	for _, update := range v.Updates {
+		return db.ParseTitleNameFromFileName(update.ExtendedInfo.FileName)
+	}
+
+	return "unknown"
 }
 
 func getFolderName(options settings.OrganizeOptions, templateData map[string]string) string {
